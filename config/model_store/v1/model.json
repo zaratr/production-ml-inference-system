@@ -1,0 +1,7 @@
+{
+  "bias": -0.4,
+  "weights": {
+    "feature_a": 0.8,
+    "feature_b": 0.2
+  }
+}
