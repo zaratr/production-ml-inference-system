@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.services.inference_service import InferenceService
 from app.utils.config import get_settings
+import asyncio
+from app.services.circuit_breaker import CircuitBreakerOpen
 from app.deps import get_inference_service
 
 router = APIRouter()
@@ -16,7 +18,7 @@ def health(service: InferenceService = Depends(get_inference_service)) -> Dict[s
 
 
 @router.post("/predict")
-def predict(
+async def predict(
     payload: Dict[str, List[Dict[str, Any]]],
     version: Optional[str] = None,
     service: InferenceService = Depends(get_inference_service),
@@ -24,7 +26,12 @@ def predict(
     features = payload.get("instances")
     if features is None:
         raise HTTPException(status_code=400, detail="instances field is required")
-    return service.predict(features=features, model_version=version)
+    try:
+        return await service.predict(features=features, model_version=version)
+    except asyncio.QueueFull:
+        raise HTTPException(status_code=503, detail="Service overloaded (queue full)")
+    except CircuitBreakerOpen:
+        raise HTTPException(status_code=503, detail="Circuit breaker open")
 
 
 @router.post("/batch")

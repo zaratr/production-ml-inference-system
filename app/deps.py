@@ -13,7 +13,10 @@ from app.utils.config import get_settings
 @lru_cache()
 def get_registry() -> ModelRegistry:
     settings = get_settings()
-    return ModelRegistry(registry_path=settings.model_registry_path)
+    return ModelRegistry(
+        registry_path=settings.model_registry_path,
+        default_version=settings.default_model_version,
+    )
 
 
 @lru_cache()

@@ -20,3 +20,18 @@ rad.json
 *.flf
 #Test results file
 TestResults.xml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+.env
+*.log
+
+# Project
+verify_breaker.py
+benchmark.py
+model_store/
+!config/model_store/v1/items

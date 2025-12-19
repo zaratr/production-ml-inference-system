@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 import math
+import threading
+import time
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -18,8 +20,20 @@ class ExampleModel(Model):
         self.weights: Dict[str, float] = {
             key: float(value) for key, value in payload.get("weights", {}).items()
         }
+        # Simulate GPU lock (only one inference at a time per model instance)
+        self._lock = threading.Lock()
 
     def predict(self, features: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        # Simulate GPU latency: processing a batch takes roughly fixed time
+        # regardless of size (up to a limit), unlike CPU loops.
+        # Enforce serial execution to simulate single GPU resource.
+        with self._lock:
+            # Simulate GPU latency: Base overhead + per-item processing time
+            # e.g., 10ms base + 1ms per item.
+            # Batch of 32: ~42ms. Batch of 1000: ~1.01s.
+            latency = 0.01 + (0.001 * len(features))
+            time.sleep(latency)
+
         predictions: List[Dict[str, Any]] = []
         for row in features:
             score = self.bias
